@@ -206,6 +206,12 @@ EDNS_V1
 ## Phase 5
 🚧 Closed-Loop Learning Automation
 
+### Detailed Roadmap
+
+See the compplete roadmap:
+
+[EDNS Master Roadmap](docs/EDNS_Master_Roadmap.md)
+
 ---
 
 # Skills Demonstrated
