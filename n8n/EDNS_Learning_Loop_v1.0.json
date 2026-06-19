@@ -1,0 +1,88 @@
+{
+  "name": "EDNS_Learning_Loop_v1.0",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "0 0 * * *"
+      },
+      "id": "node-learn-01-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "EXEC sp_EDNS_Execute_Learning_Loop @MinFeedbackScore = 80.00, @ExecutedBy = 'n8n_Learning_Loop_v1.0';"
+      },
+      "id": "node-learn-02-procedure",
+      "name": "SQL: Execute Stored Procedure",
+      "type": "n8n-nodes-base.microsoftSqlServer",
+      "typeVersion": 1,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.powerbi.com/v1.0/myOrg/groups/workspace-id-placeholder/datasets/dataset-id-placeholder/refreshes",
+        "authentication": "oAuth2",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "id": "node-learn-03-powerbi",
+      "name": "Power BI Dataset Refresh",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "edns-learning-service@enterprise.com",
+        "toEmail": "architecture-board@enterprise.com",
+        "subject": "=EDNS Learning Loop Report: Memory Reinforced (Count: {{$node[\"SQL: Execute Stored Procedure\"].json.processed_learnings_count}})",
+        "html": "=<h2>EDNS Self-Learning Engine Report</h2><p><strong>Execution Status:</strong> SUCCESS</p><p><strong>Dedicated Audit Log:</strong> Committed to learning_execution_log table.</p><p><strong>Processed & Reinforced Memory Nodes:</strong> {{$node[\"SQL: Execute Stored Procedure\"].json.processed_learnings_count}} decisions graduated to system standard rules.</p><p><em>Notice: Power BI Decision Control Tower data sync refresh triggered successfully via downstream Push APIs.</em></p>"
+      },
+      "id": "node-learn-04-email",
+      "name": "Email Learning Summary",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [760, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "SQL: Execute Stored Procedure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL: Execute Stored Procedure": {
+      "main": [
+        [
+          {
+            "node": "Power BI Dataset Refresh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Power BI Dataset Refresh": {
+      "main": [
+        [
+          {
+            "node": "Email Learning Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
