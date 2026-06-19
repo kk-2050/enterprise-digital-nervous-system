@@ -14,13 +14,15 @@ docs/EDNS_Master_Roadmap.md
 
 Current Priority:
 
-Phase 1 – Workflow 1
+Phase 1 Completion
 
 EDNS Core Pipeline
++
+EDNS Learning Loop
 
 Status:
 
-🚧 In Development
+🚧 Validation & Integration
 
 ---
 
@@ -144,6 +146,21 @@ Enterprise Memory Update
         ↓
 Learning Log
 ```
+## Current Workflow Exports
+
+| Workflow File                | Status       |
+| ---------------------------- | ------------ |
+| EDNS_Core_Pipeline_v1.4.json | 🚧 Designed |
+| EDNS_Learning_Loop_v1.0.json | 🚧 Designed |
+
+These workflow exports represent the complete implementation scope of Phase 1.
+
+Phase 1 consists of:
+
+1. EDNS Core Pipeline
+2. EDNS Learning Loop
+
+Additional workflows will be introduced only as part of Phase 2 – EDNS Cognitive Extensions.
 
 ---
 
