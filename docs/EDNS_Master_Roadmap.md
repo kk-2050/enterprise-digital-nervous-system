@@ -142,6 +142,32 @@ Phase 2: Planned
 
 ---
 
+# Current Development Focus
+
+Current Priority:
+
+Phase 1 – Workflow 1
+
+EDNS Core Pipeline
+
+Implementation Order:
+
+1. Signal Ingestion
+2. Enterprise Memory Retrieval
+3. AI Reasoning
+4. Risk Prediction
+5. Decision Generation
+6. Action Execution
+7. Telemetry Logging
+
+Status:
+
+🚧 In Development
+
+Future workflows will not begin until the EDNS Core Pipeline is operational.
+
+---
+
 # Scope Definition
 
 Phase 1 Workflows
@@ -158,3 +184,19 @@ Phase 2 Workflows
 7. Model Optimization & Tuning
 
 This roadmap serves as the official reference architecture for all future EDNS development.
+
+---
+
+# Development Governance
+
+Before implementing any new feature:
+
+1. Check EDNS_Master_Roadmap.md
+2. Identify the corresponding Phase
+3. Identify the corresponding Workflow
+4. Update the roadmap if the architecture changes
+5. Implement only after architectural alignment
+
+Architecture decisions must be documented before implementation.
+
+This document serves as the single source of truth for EDNS architecture, scope, and roadmap planning.
