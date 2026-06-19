@@ -2,22 +2,77 @@
 
 This folder contains workflow automation exports for the Enterprise Digital Nervous System (EDNS).
 
+The workflow architecture follows the official roadmap defined in:
+
+```text
+docs/EDNS_Master_Roadmap.md
+```
+
 ---
 
-## Phase 2 – Signal Processing Pipeline
+# Current Development Focus
 
-The objective of this phase is to transform raw business signals into structured decisions and automated actions.
+Current Priority:
 
-### Planned Workflow
+Phase 1 – Workflow 1
+
+EDNS Core Pipeline
+
+Status:
+
+🚧 In Development
+
+---
+
+# Workflow 1 – EDNS Core Pipeline
+
+Purpose:
+
+Transform business signals into decisions and actions.
+
+```text
+Sense
+↓
+Ingestion
+↓
+Remember
+↓
+Reason
+↓
+Predict
+↓
+Decide
+↓
+Act
+↓
+Telemetry Logging
+```
+
+Capabilities:
+
+* Signal ingestion
+* Signal validation
+* Enterprise memory retrieval
+* AI reasoning
+* Risk prediction
+* Decision generation
+* Automated action execution
+* Telemetry collection
+
+---
+
+## Planned n8n Flow
 
 ```text
 Business Signal
         ↓
-n8n Workflow
+Webhook Trigger
         ↓
 Signal Validation
         ↓
-Enterprise Memory Lookup
+SQL Server Memory Lookup
+        ↓
+Retrieve Similar Incidents
         ↓
 OpenAI Analysis
         ↓
@@ -27,60 +82,91 @@ Decision Generation
         ↓
 Action Execution
         ↓
-Feedback Collection
-        ↓
+Telemetry Logging
+```
+
+---
+
+# Phase 1 Use Cases
+
+The following business scenarios will utilize the EDNS Core Pipeline.
+
+| Use Case                 | Status  |
+| ------------------------ | ------- |
+| Supplier Delay           | Planned |
+| Facility Failure         | Planned |
+| Inventory Shortage       | Planned |
+| Logistics Disruption     | Planned |
+| Critical Risk Escalation | Planned |
+
+These are business use cases, not separate workflows.
+
+All use cases execute through the EDNS Core Pipeline.
+
+---
+
+# Workflow 2 – EDNS Learning Loop
+
+Purpose:
+
+Continuously improve decision quality through feedback and memory updates.
+
+```text
+Feedback
+↓
+Learn
+↓
 Enterprise Memory Update
 ```
 
+Capabilities:
+
+* Outcome tracking
+* Decision evaluation
+* Knowledge reinforcement
+* Enterprise memory updates
+* Continuous improvement
+
 ---
 
-## Initial Workflow
-
-### EDNS – Supplier Delay Workflow v1
-
-Business Scenario:
-
-A critical supplier reports a shipment delay.
-
-Workflow:
+## Planned Learning Flow
 
 ```text
-Webhook Trigger
+Action Outcome
         ↓
-Validate Signal
+Feedback Collection
         ↓
-Query SQL Server Memory
+Decision Evaluation
         ↓
-Retrieve Similar Incidents
+Knowledge Extraction
         ↓
-OpenAI Analysis
+Enterprise Memory Update
         ↓
-Generate Recommendation
-        ↓
-Send Alert
-        ↓
-Log Decision
+Learning Log
 ```
 
 ---
 
-## Planned Workflow Exports
+# Future Phase 2 Workflows
 
-| Workflow                          | Status  |
-| --------------------------------- | ------- |
-| Supplier Delay Workflow           | Planned |
-| Facility Failure Workflow         | Planned |
-| Inventory Shortage Workflow       | Planned |
-| Logistics Disruption Workflow     | Planned |
-| Critical Risk Escalation Workflow | Planned |
-| Memory Update Workflow            | Planned |
+The following workflows belong to Phase 2 – EDNS Cognitive Extensions.
+
+| Workflow                    | Status  |
+| --------------------------- | ------- |
+| Multi-Agent Operations      | Planned |
+| MCP Tool Integration        | Planned |
+| Voice Operations            | Planned |
+| Offline LLM / Local AI      | Planned |
+| Model Optimization & Tuning | Planned |
+
+Phase 2 development will begin only after Phase 1 is operational.
 
 ---
 
-## Technologies
+# Technologies
 
 * n8n
-* SQL Server
+* Microsoft SQL Server
 * OpenAI GPT-4o
 * Email Notifications
 * Microsoft Teams
@@ -88,10 +174,14 @@ Log Decision
 
 ---
 
-## Future Enhancements
+# Architecture Governance
 
-* Multi-agent decision orchestration
-* Automated risk prediction
-* Closed-loop memory updates
-* Enterprise learning automation
-* Human approval workflows
+Before implementing a workflow:
+
+1. Review EDNS_Master_Roadmap.md
+2. Confirm the associated Phase
+3. Confirm the associated Workflow
+4. Update architecture documentation if scope changes
+5. Implement only after architectural alignment
+
+This folder contains workflow implementations that follow the official EDNS architecture.
