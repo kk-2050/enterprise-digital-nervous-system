@@ -148,10 +148,10 @@ Learning Log
 ```
 ## Current Workflow Exports
 
-| Workflow File                | Status       |
-| ---------------------------- | ------------ |
-| EDNS_Core_Pipeline_v1.4.json | 🚧 Designed |
-| EDNS_Learning_Loop_v1.0.json | 🚧 Designed |
+| Workflow File                | Status        |
+| ---------------------------- | ------------- |
+| EDNS_Core_Pipeline_v1.4.json | 🚧 Prototype  |
+| EDNS_Learning_Loop_v1.0.json | 🚧 Prototype  |
 
 These workflow exports represent the complete implementation scope of Phase 1.
 
