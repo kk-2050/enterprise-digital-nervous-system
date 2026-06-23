@@ -1,0 +1,389 @@
+{
+  "name": "EDNS_Signal_Collector_v1",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -944,
+        -272
+      ],
+      "id": "f33b17dd-c703-43e2-87c4-e6a8464a1bc9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "signal_sources",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_active",
+              "condition": "is",
+              "keyValue": "True"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        -272
+      ],
+      "id": "7cb233bd-8de5-4350-862e-1e78a9ed4b19",
+      "name": "Load Signal Sources",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Bk7AnMWXC4KllT6S",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{$json.rss_url}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        -272
+      ],
+      "id": "ddea2c9c-9b7d-4c72-ba4c-aaf657f1edc6",
+      "name": "Collect RSS Signals"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * EDNS Signal Collector\n * Filter Recent Signals\n *\n * Purpose:\n * Retain only recent RSS articles published within the last 48 hours.\n *\n * Benefits:\n * - Reduces unnecessary AI processing costs\n * - Prevents analysis of stale business signals\n * - Focuses EDNS on current operational events\n *\n * Input:\n * RSS articles from Fetch RSS Feed node\n *\n * Output:\n * Only articles published within the last 48 hours\n */\n\n\n// Calculate cutoff date (Current Time - 48 Hours)\nconst cutoffDate = new Date();\ncutoffDate.setHours(cutoffDate.getHours() - 48);\n\n\n// Retrieve all RSS articles from previous node\nconst inputItems = $input.all();\n\n\n// Filter articles based on publication date\nreturn inputItems.filter(item => {\n\n    // Convert RSS publication date string into JavaScript Date object\n    const articleDate = new Date(item.json.pubDate);\n\n    // Keep only articles published within the last 48 hours\n    return articleDate >= cutoffDate;\n\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -272
+      ],
+      "id": "e3c20055-ed5e-4801-890c-34dfcb6b7c0b",
+      "name": "Filter Recent Signals"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "guid",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        -272
+      ],
+      "id": "2efdfa73-588f-4813-b124-46e1c6974b9a",
+      "name": "Deduplicate Signals"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Analyze the following business signal.\n\nReturn ONLY valid JSON.\n\n{\n  \"incident_type\": \"\",\n  \"severity_score\": 1,\n  \"confidence_score\": 1,\n  \"reasoning_summary\": \"\",\n  \"prediction_summary\": \"\",\n  \"recommended_action\": \"\"\n}\n\nTitle:\n{{$json.title}}\n\nSummary:\n{{$json.contentSnippet}}\n\nSource:\n{{$json.link}}\n\nScoring Rules\n\nSeverity Score:\n1 = Low\n2 = Minor\n3 = Moderate\n4 = High\n5 = Critical\n\nConfidence Score:\n1 - 10\n\nFocus on:\n\nOperational Risk\nSupply Chain Risk\nFinancial Risk\nTechnology Risk\nCybersecurity Risk\nRegulatory Risk\n\nReturn JSON only."
+            },
+            {
+              "role": "system",
+              "content": "You are an Enterprise Risk Intelligence Analyst.\n\nYour job is to evaluate business events and determine their operational impact.\n\nAlways return valid JSON.\n\nNever return markdown.\n\nNever return explanations outside the JSON structure.\n\nThink like:\n\nOperations Manager\nSupply Chain Manager\nBusiness Continuity Manager\nEnterprise Risk Analyst"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -272
+      ],
+      "id": "b2807ef5-febd-47b6-b6d5-269f279dc6de",
+      "name": "AI Risk Analysis",
+      "credentials": {
+        "openAiApi": {
+          "id": "kA9mS5H3GRsW03H8",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * EDNS Risk Event Normalization\n *\n * Purpose:\n * Combine the original RSS signal data with the AI risk analysis result.\n *\n * Input:\n * - AI Risk Analysis output\n * - Original article data from Deduplicate Signals node\n *\n * Output:\n * Normalized risk event records ready for Supabase storage\n */\n\nconst aiItems = $input.all();\nconst sourceItems = $items(\"Deduplicate Signals\");\n\nreturn aiItems.map((item, index) => {\n\n  // Original RSS article\n  const source = sourceItems[index].json;\n\n  // AI response text\n  let aiText = item.json.output[0].content[0].text;\n\n  // Remove markdown code blocks if AI accidentally returns them\n  aiText = aiText\n    .replace(/```json/g, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n\n  // Convert AI JSON text to JavaScript object\n  const risk = JSON.parse(aiText);\n\n  return {\n    json: {\n      source_title: source.title,\n      source_url: source.link,\n      article_date: source.pubDate,\n\n      incident_type: risk.incident_type,\n      severity_score: risk.severity_score,\n      confidence_score: risk.confidence_score,\n\n      reasoning_summary: risk.reasoning_summary,\n      prediction_summary: risk.prediction_summary,\n      recommended_action: risk.recommended_action,\n\n      processed_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -272
+      ],
+      "id": "3e9c05a3-e960-4bbc-8e0c-310f0e32b29c",
+      "name": "Risk Event Normalization"
+    },
+    {
+      "parameters": {
+        "tableId": "signal_events",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "source_title",
+              "fieldValue": "={{$json.source_title}}"
+            },
+            {
+              "fieldId": "source_url",
+              "fieldValue": "={{$json.source_url}}"
+            },
+            {
+              "fieldId": "article_date",
+              "fieldValue": "={{$json.article_date}}"
+            },
+            {
+              "fieldId": "incident_type",
+              "fieldValue": "={{$json.incident_type}}"
+            },
+            {
+              "fieldId": "severity_score",
+              "fieldValue": "={{$json.severity_score}}"
+            },
+            {
+              "fieldId": "confidence_score",
+              "fieldValue": "={{$json.confidence_score}}"
+            },
+            {
+              "fieldId": "reasoning_summary",
+              "fieldValue": "={{$json.reasoning_summary}}"
+            },
+            {
+              "fieldId": "prediction_summary",
+              "fieldValue": "={{$json.prediction_summary}}"
+            },
+            {
+              "fieldId": "recommended_action",
+              "fieldValue": "={{$json.recommended_action}}"
+            },
+            {
+              "fieldId": "event_timestamp",
+              "fieldValue": "={{$json.processed_at}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -272
+      ],
+      "id": "919d0c34-07e5-4b6f-863b-f980d37677fa",
+      "name": "Store Risk Event (Supabase Memory)",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Bk7AnMWXC4KllT6S",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kssweets8@gmail.com",
+        "subject": "=🚨 High Risk Alert - {{$json.incident_type}} (Severity {{$json.severity_score}})",
+        "emailType": "text",
+        "message": "=🚨 ENTERPRISE DIGITAL NERVOUS SYSTEM\n\nHIGH RISK ALERT\n\nRisk Type:\n{{$json.incident_type}}\n\nSeverity:\n{{$json.severity_score}}\n\nConfidence:\n{{$json.confidence_score}}\n\nArticle:\n{{$json.source_title}}\n\nSummary:\n{{$json.reasoning_summary}}\n\nPrediction:\n{{$json.prediction_summary}}\n\nRecommended Action:\n{{$json.recommended_action}}\n\nOpen Article:\n{{$json.source_url}}\n\nEvent Recorded:\n{{$json.created_at}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        -416
+      ],
+      "id": "41433b24-22cd-43fd-bef4-490df177ca17",
+      "name": "Executive Risk Alert (Gmail)",
+      "webhookId": "fd79c294-b470-4718-b917-0bf5ddbc8132",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PzLj7u8rthD8eeUH",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "676b7d76-d41d-42d8-8188-42784a69155b",
+              "leftValue": "={{$json.severity_score}}",
+              "rightValue": 4,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        688,
+        -272
+      ],
+      "id": "d7c6ac0b-0dee-49f6-9ba8-485265827007",
+      "name": "High Risk Alert Check"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load Signal Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Signal Sources": {
+      "main": [
+        [
+          {
+            "node": "Collect RSS Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect RSS Signals": {
+      "main": [
+        [
+          {
+            "node": "Filter Recent Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Recent Signals": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate Signals": {
+      "main": [
+        [
+          {
+            "node": "AI Risk Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Risk Analysis": {
+      "main": [
+        [
+          {
+            "node": "Risk Event Normalization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk Event Normalization": {
+      "main": [
+        [
+          {
+            "node": "Store Risk Event (Supabase Memory)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive Risk Alert (Gmail)": {
+      "main": [
+        []
+      ]
+    },
+    "Store Risk Event (Supabase Memory)": {
+      "main": [
+        [
+          {
+            "node": "High Risk Alert Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Risk Alert Check": {
+      "main": [
+        [
+          {
+            "node": "Executive Risk Alert (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c69653de-692a-4e7c-ac3d-74316286116a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ee5daa325b3f448f877bf7d6d666ab970928312cd2aa48e93185c0c23464926b"
+  },
+  "nodeGroups": [],
+  "id": "Rh22gdaFoZCZlFyM",
+  "tags": []
+}
