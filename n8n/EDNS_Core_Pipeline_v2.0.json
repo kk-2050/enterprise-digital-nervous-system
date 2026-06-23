@@ -1,0 +1,267 @@
+{
+  "name": "EDNS_Core_Pipeline_v2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "tableId": "signal_events",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "incident_type",
+              "fieldValue": "={{$json.incident_type}}"
+            },
+            {
+              "fieldId": "severity_score",
+              "fieldValue": "={{$json.severity_score}}"
+            },
+            {
+              "fieldId": "confidence_score",
+              "fieldValue": "={{$json.confidence_score}}"
+            },
+            {
+              "fieldId": "reasoning_summary",
+              "fieldValue": "={{$json.reasoning_summary}}"
+            },
+            {
+              "fieldId": "prediction_summary",
+              "fieldValue": "={{$json.prediction_summary}}"
+            },
+            {
+              "fieldId": "recommended_action",
+              "fieldValue": "={{$json.recommended_action}}"
+            },
+            {
+              "fieldId": "source_title",
+              "fieldValue": "={{$node[\"RSS Signal Detection (Sense)\"].json.title}}"
+            },
+            {
+              "fieldId": "source_url",
+              "fieldValue": "={{$node[\"RSS Signal Detection (Sense)\"].json.link}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "a8861dd1-9588-4196-a472-493466a46630",
+      "name": "Store Risk Event (supabase - SQL)",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Bk7AnMWXC4KllT6S",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are the Enterprise Digital Nervous System (EDNS) Brain.\n\nAnalyze the article and return JSON only.\n\n{\n  \"incident_type\":\"\",\n  \"severity_score\":0,\n  \"confidence_score\":0,\n  \"reasoning_summary\":\"\",\n  \"prediction_summary\":\"\",\n  \"recommended_action\":\"\"\n}\n\nArticle Title:\n{{ $json.title }}\n\nArticle Summary:\n{{ $json.contentSnippet }}\n\nIMPORTANT\n\nReturn ONLY raw JSON.\n\nDo not use markdown.\n\nDo not use ```json.\n\nDo not use code blocks.\n\nReturn valid JSON only."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "5c4a5704-2ce9-4ffd-84a1-6288b1f7b824",
+      "name": "AI Risk Analysis",
+      "credentials": {
+        "openAiApi": {
+          "id": "kA9mS5H3GRsW03H8",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour",
+              "minute": 30
+            }
+          ]
+        },
+        "feedUrl": "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -16
+      ],
+      "id": "f6f32390-723f-4d3b-949b-1a8f5d0a0c55",
+      "name": "RSS Signal Detection (Sense)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "134844dd-fa7d-401f-9941-c3befa8f617b",
+              "name": "incident_type",
+              "value": "={{ JSON.parse($json.output[0].content[0].text).incident_type }}",
+              "type": "string"
+            },
+            {
+              "id": "018b1e1b-578e-4975-b1bb-5b1fd82db66c",
+              "name": "severity_score",
+              "value": "={{ JSON.parse($json.output[0].content[0].text).severity_score }}",
+              "type": "string"
+            },
+            {
+              "id": "03efd4b3-8f69-4c04-b518-ec949a8eb47e",
+              "name": "confidence_score",
+              "value": "={{ JSON.parse($json.output[0].content[0].text).confidence_score }}",
+              "type": "number"
+            },
+            {
+              "id": "fa97eaed-a0ad-459f-b96b-a8844be5facb",
+              "name": "reasoning_summary",
+              "value": "={{ JSON.parse($json.output[0].content[0].text).reasoning_summary }}",
+              "type": "string"
+            },
+            {
+              "id": "204957e8-1154-4653-ab1b-0148650d70b1",
+              "name": "prediction_summary",
+              "value": "={{ JSON.parse($json.output[0].content[0].text).prediction_summary }}",
+              "type": "string"
+            },
+            {
+              "id": "087e6daa-71d2-467b-9af0-c24fb48a5c95",
+              "name": "recommended_action",
+              "value": "={{ JSON.parse($json.output[0].content[0].text).recommended_action }}",
+              "type": "string"
+            },
+            {
+              "id": "893f42b3-9164-497a-8897-9ccd0503bd61",
+              "name": "source_title",
+              "value": "={{$node[\"RSS Signal Detection (Sense)\"].json.title}}",
+              "type": "string"
+            },
+            {
+              "id": "d72b4402-528b-41ff-b47d-daad0bd5e2d5",
+              "name": "source_url",
+              "value": "={{$node[\"RSS Signal Detection (Sense)\"].json.link}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "a994d964-ea8a-455a-af00-1f9073401d92",
+      "name": "Risk Event Normalization"
+    },
+    {
+      "parameters": {
+        "sendTo": "kssweets8@gmail.com",
+        "subject": "=EDNS Alert - {{$json.incident_type}}",
+        "message": "=<h2>EDNS Risk Alert</h2>\n\n<p><b>Incident Type:</b> {{ $json.incident_type }}</p>\n<p><b>Severity Score:</b> 🔴 {{ $json.severity_score }}/5</p>\n<p><b>Confidence Score:</b> 🎯 {{ $json.confidence_score }}/10</p>\n\n<hr>\n\n<h3>Reasoning Summary</h3>\n<p>{{ $json.reasoning_summary }}</p>\n\n<h3>Prediction Summary</h3>\n<p>{{ $json.prediction_summary }}</p>\n\n<h3>Recommended Action</h3>\n<p>{{ $json.recommended_action }}</p>\n\n<hr>\n\n<h3>Source</h3>\n\n<p><b>Title:</b> {{ $json.source_title }}</p>\n\n<p>\n<b>URL:</b>\n<a href=\"{{ $json.source_url }}\">\n{{ $json.source_url }}\n</a>\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        176
+      ],
+      "id": "f75c34c8-968a-4793-9a7e-2e5a6da16912",
+      "name": "Executive Alert",
+      "webhookId": "def6b62d-58ba-4a5d-9bd8-b0c9f3f484d3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PzLj7u8rthD8eeUH",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Store Risk Event (supabase - SQL)": {
+      "main": [
+        []
+      ]
+    },
+    "AI Risk Analysis": {
+      "main": [
+        [
+          {
+            "node": "Risk Event Normalization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Signal Detection (Sense)": {
+      "main": [
+        [
+          {
+            "node": "AI Risk Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk Event Normalization": {
+      "main": [
+        [
+          {
+            "node": "Store Risk Event (supabase - SQL)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Executive Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive Alert": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4005ffe5-119f-4efe-aa25-71ac0a0e98d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ee5daa325b3f448f877bf7d6d666ab970928312cd2aa48e93185c0c23464926b"
+  },
+  "nodeGroups": [],
+  "id": "2SuOqnSVynXE1gaV",
+  "tags": []
+}
